@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Scale Investigation - Powers of 10</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .controls button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .scale-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4A90E2;
+            backdrop-filter: blur(10px);
+        }
+
+        .scale-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 5px;
+        }
+
+        .scale-description {
+            font-size: 16px;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        .scale-size {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 320px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4A90E2;
+        }
+
+        .info-content {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #7ED321, #F5A623, #FF6B6B);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4A90E2;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="cosmicCanvas"></canvas>
+        </div>
+
+        <div class="scale-indicator">
+            <div class="scale-value" id="scaleValue">10^7 m</div>
+            <div class="scale-description" id="scaleDescription">Earth</div>
+            <div class="scale-size" id="scaleSize">Our home planet</div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-title" id="infoTitle">You Are Here</div>
+            <div class="info-content" id="infoContent">Our home planet Earth, where all human history has taken place. From this perspective, Earth fills our entire view.</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="controls">
+            <button id="zoomOut">Zoom Out (10x)</button>
+            <button id="zoomIn">Zoom In (10x)</button>
+            <button id="reset">Reset to Earth</button>
+            <button id="animate">Auto Tour</button>
+        </div>
+
+        <div class="instructions">
+            Step through each power of 10 • Experience structure and emptiness • 21 levels from Earth to Observable Universe
+        </div>
+
+        <div class="loading" id="loading">Loading images...</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('cosmicCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Scale levels with image URLs
+        const scaleLevels = [
+            {
+                power: 7,
+                name: "Earth",
+                description: "Our home planet",
+                info: "Our home planet Earth, where all human history has taken place. From this perspective, Earth fills our entire view.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers07.jpg"
+            },
+            {
+                power: 8,
+                name: "Earth's Orbit",
+                description: "Earth-Moon system",
+                info: "Earth and its Moon. The Moon orbits at about 400,000 km distance. Earth now appears as a small blue marble.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers08.jpg"
+            },
+            {
+                power: 9,
+                name: "Inner Solar System",
+                description: "Mercury, Venus, Earth, Mars",
+                info: "The inner rocky planets of our Solar System. Vast empty space separates these worlds.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers09.jpg"
+            },
+            {
+                power: 10,
+                name: "Middle Solar System",
+                description: "Asteroid belt region",
+                info: "The asteroid belt between Mars and Jupiter. Mostly empty space with scattered rocky debris.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers10.jpg"
+            },
+            {
+                power: 11,
+                name: "Outer Solar System",
+                description: "Gas giants and moons",
+                info: "Jupiter, Saturn, Uranus, and Neptune with their moons and rings. The Sun appears as a bright star.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers11.jpg"
+            },
+            {
+                power: 12,
+                name: "Solar System Edge",
+                description: "Kuiper Belt and beyond",
+                info: "The edge of our Solar System where comets originate. Pluto and other dwarf planets reside here.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers12.jpg"
+            },
+            {
+                power: 13,
+                name: "Heliosphere",
+                description: "Solar wind boundary",
+                info: "The region dominated by solar wind. Beyond this lies interstellar space - a near-perfect vacuum.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers13.jpg"
+            },
+            {
+                power: 14,
+                name: "Interstellar Void",
+                description: "Empty space between stars",
+                info: "Nearly perfect vacuum with occasional gas molecules. The nearest star is still incredibly far away.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers14.jpg"
+            },
+            {
+                power: 15,
+                name: "Interstellar Space",
+                description: "Approaching nearby stars",
+                info: "Still mostly empty space, but we begin to detect the influence of nearby star systems.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers15.jpg"
+            },
+            {
+                power: 16,
+                name: "Stellar Neighborhood",
+                description: "A few nearby stars",
+                info: "A handful of the closest stars to our Sun become visible. Alpha Centauri is about 4.3 light-years away.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers16.jpg"
+            },
+            {
+                power: 17,
+                name: "Local Stars",
+                description: "Stars visible to naked eye",
+                info: "Most of the stars visible in our night sky. These are all relatively close neighbors in cosmic terms.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers17.jpg"
+            },
+            {
+                power: 18,
+                name: "Galactic Arm",
+                description: "Part of spiral arm",
+                info: "We see a portion of our spiral arm of the Milky Way. Still mostly empty space between star systems.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers18.jpg"
+            },
+            {
+                power: 19,
+                name: "Galactic Region",
+                description: "Large section of galaxy",
+                info: "A significant portion of our galaxy becomes visible, but individual stars merge into a glowing haze.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers19.jpg"
+            },
+            {
+                power: 20,
+                name: "Galactic Disk",
+                description: "Most of Milky Way visible",
+                info: "The full disk of our spiral galaxy is visible. We can see the central bulge and spiral arms.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers20.jpg"
+            },
+            {
+                power: 21,
+                name: "Milky Way Galaxy",
+                description: "Our complete galaxy",
+                info: "The entire Milky Way galaxy - a spiral containing over 100 billion stars. Our Solar System is a tiny dot.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers21.jpg"
+            },
+            {
+                power: 22,
+                name: "Galactic Halo",
+                description: "Beyond the galaxy",
+                info: "The sparse halo around our galaxy and the beginning of intergalactic space - mostly empty void.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers22.jpg"
+            },
+            {
+                power: 23,
+                name: "Local Group",
+                description: "Nearby galaxies",
+                info: "Our galaxy cluster including Andromeda, Triangulum, and smaller galaxies. Vast emptiness between them.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers23.jpg"
+            },
+            {
+                power: 24,
+                name: "Intergalactic Space",
+                description: "Between galaxy groups",
+                info: "Mostly empty space between galaxy groups. Occasionally we encounter other galaxy clusters.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers24.jpg"
+            },
+            {
+                power: 25,
+                name: "Local Supercluster",
+                description: "Galaxy clusters connected",
+                info: "The Virgo Supercluster - thousands of galaxies organized in a web-like structure with huge voids.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers25.jpg"
+            },
+            {
+                power: 26,
+                name: "Cosmic Web",
+                description: "Largest structures",
+                info: "The cosmic web - superclusters connected by filaments with enormous voids between them.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers26.jpg"
+            },
+            {
+                power: 27,
+                name: "Observable Universe",
+                description: "All we can see",
+                info: "The boundary of everything observable. The cosmic web appears as a foam-like structure at this scale.",
+                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers27.jpg"
+            }
+        ];
+
+        // Global state variables
+        let currentLevel = 0;
+        let animating = false;
+        let animationId = null;
+        let transitioning = false;
+        let transitionProgress = 0;
+        let transitionDirection = 0;
+        let previousLevel = 0;
+        let images = {};
+        let imagesLoaded = false;
+
+        // Preload all images
+        function preloadImages() {
+            let loadedCount = 0;
+            const totalImages = scaleLevels.length;
+            
+            scaleLevels.forEach((level, index) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous"; // Handle CORS if needed
+                img.onload = () => {
+                    loadedCount++;
+                    console.log(`Loaded image ${loadedCount}/${totalImages}: ${level.name}`);
+                    if (loadedCount === totalImages) {
+                        imagesLoaded = true;
+                        document.getElementById('loading').style.display = 'none';
+                        updateDisplay();
+                    }
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load image: ${level.image}`);
+                    loadedCount++;
+                    if (loadedCount === totalImages) {
+                        imagesLoaded = true;
+                        document.getElementById('loading').style.display = 'none';
+                        updateDisplay();
+                    }
+                };
+                img.src = level.image;
+                images[index] = img;
+            });
+        }
+
+        function updateDisplay() {
+            if (!imagesLoaded) return;
+            
+            const level = scaleLevels[currentLevel];
+            
+            document.getElementById('scaleValue').textContent = `10^${level.power} m`;
+            document.getElementById('scaleDescription').textContent = level.name;
+            document.getElementById('scaleSize').textContent = level.description;
+            document.getElementById('infoTitle').textContent = level.name;
+            document.getElementById('infoContent').textContent = level.info;
+            
+            const progress = (currentLevel / (scaleLevels.length - 1)) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            document.getElementById('zoomOut').disabled = currentLevel >= scaleLevels.length - 1 || transitioning;
+            document.getElementById('zoomIn').disabled = currentLevel <= 0 || transitioning;
+            
+            if (!transitioning) {
+                drawScale();
+            }
+        }
+
+        function startTransition(direction) {
+            if (transitioning || !imagesLoaded) return;
+            
+            transitioning = true;
+            transitionProgress = 0;
+            transitionDirection = direction;
+            previousLevel = currentLevel;
+            
+            if (direction === 1 && currentLevel < scaleLevels.length - 1) {
+                currentLevel++;
+            } else if (direction === -1 && currentLevel > 0) {
+                currentLevel--;
+            }
+            
+            animateTransition();
+        }
+
+        function animateTransition() {
+            transitionProgress += 0.03;
+            
+            if (transitionProgress >= 1) {
+                transitioning = false;
+                transitionProgress = 0;
+                updateDisplay();
+                return;
+            }
+            
+            drawTransition();
+            requestAnimationFrame(animateTransition);
+        }
+
+        function drawTransition() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const easeProgress = 0.5 - Math.cos(transitionProgress * Math.PI) / 2;
+            
+            if (transitionDirection === 1) {
+                // Zooming out
+                const currentScale = 1 - (easeProgress * 0.4); // 100% to 60%
+                const currentAlpha = 1 - easeProgress;
+                
+                const nextScale = 1.4 - (easeProgress * 0.4); // 140% to 100%
+                const nextAlpha = easeProgress;
+                
+                // Draw previous level
+                ctx.save();
+                ctx.globalAlpha = currentAlpha;
+                ctx.scale(currentScale, currentScale);
+                ctx.translate((centerX * (1 - currentScale)) / currentScale, (centerY * (1 - currentScale)) / currentScale);
+                drawImageForLevel(previousLevel);
+                ctx.restore();
+                
+                // Draw current level
+                ctx.save();
+                ctx.globalAlpha = nextAlpha;
+                ctx.scale(nextScale, nextScale);
+                ctx.translate((centerX * (1 - nextScale)) / nextScale, (centerY * (1 - nextScale)) / nextScale);
+                drawImageForLevel(currentLevel);
+                ctx.restore();
+                
+            } else {
+                // Zooming in
+                const currentScale = 1 + (easeProgress * 0.4); // 100% to 140%
+                const currentAlpha = 1 - easeProgress;
+                
+                const nextScale = 0.6 + (easeProgress * 0.4); // 60% to 100%
+                const nextAlpha = easeProgress;
+                
+                // Draw previous level
+                ctx.save();
+                ctx.globalAlpha = currentAlpha;
+                ctx.scale(currentScale, currentScale);
+                ctx.translate((centerX * (1 - currentScale)) / currentScale, (centerY * (1 - currentScale)) / currentScale);
+                drawImageForLevel(previousLevel);
+                ctx.restore();
+                
+                // Draw current level
+                ctx.save();
+                ctx.globalAlpha = nextAlpha;
+                ctx.scale(nextScale, nextScale);
+                ctx.translate((centerX * (1 - nextScale)) / nextScale, (centerY * (1 - nextScale)) / nextScale);
+                drawImageForLevel(currentLevel);
+                ctx.restore();
+            }
+            
+            // Update UI during transition
+            const level = scaleLevels[currentLevel];
+            document.getElementById('scaleValue').textContent = `10^${level.power} m`;
+            document.getElementById('scaleDescription').textContent = level.name;
+            document.getElementById('scaleSize').textContent = level.description;
+            document.getElementById('infoTitle').textContent = level.name;
+            document.getElementById('infoContent').textContent = level.info;
+            
+            const progress = (currentLevel / (scaleLevels.length - 1)) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function drawScale() {
+            if (transitioning || !imagesLoaded) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawImageForLevel(currentLevel);
+        }
+
+        function drawImageForLevel(levelIndex) {
+            const img = images[levelIndex];
+            if (!img || !img.complete) {
+                // Fallback: draw a placeholder
+                ctx.fillStyle = '#333';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Powers${(levelIndex + 7).toString().padStart(2, '0')}.jpg`, canvas.width/2, canvas.height/2);
+                return;
+            }
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Calculate size to fit canvas while maintaining aspect ratio
+            const canvasAspect = canvas.width / canvas.height;
+            const imageAspect = img.width / img.height;
+            
+            let drawWidth, drawHeight;
+            
+            if (imageAspect > canvasAspect) {
+                drawWidth = canvas.width * 0.95;
+                drawHeight = drawWidth / imageAspect;
+            } else {
+                drawHeight = canvas.height * 0.95;
+                drawWidth = drawHeight * imageAspect;
+            }
+            
+            // Center the image
+            const x = centerX - drawWidth / 2;
+            const y = centerY - drawHeight / 2;
+            
+            ctx.drawImage(img, x, y, drawWidth, drawHeight);
+        }
+
+        // Event listeners
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (currentLevel < scaleLevels.length - 1 && !transitioning) {
+                startTransition(1);
+            }
+        });
+
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (currentLevel > 0 && !transitioning) {
+                startTransition(-1);
+            }
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            if (!transitioning) {
+                currentLevel = 0;
+                updateDisplay();
+            }
+        });
+
+        document.getElementById('animate').addEventListener('click', () => {
+            if (transitioning) return;
+            
+            if (animating) {
+                clearInterval(animationId);
+                animating = false;
+                document.getElementById('animate').textContent = 'Auto Tour';
+            } else {
+                animating = true;
+                document.getElementById('animate').textContent = 'Stop Tour';
+                
+                animationId = setInterval(() => {
+                    if (currentLevel < scaleLevels.length - 1 && !transitioning) {
+                        startTransition(1);
+                    } else {
+                        clearInterval(animationId);
+                        animating = false;
+                        document.getElementById('animate').textContent = 'Auto Tour';
+                    }
+                }, 3000);
+            }
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (transitioning) return;
+            
+            if (e.key === 'ArrowUp' || e.key === '+') {
+                document.getElementById('zoomOut').click();
+            } else if (e.key === 'ArrowDown' || e.key === '-') {
+                document.getElementById('zoomIn').click();
+            } else if (e.key === 'r' || e.key === 'R') {
+                document.getElementById('reset').click();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('animate').click();
+            }
+        });
+
+        // Initialize
+        preloadImages();
+    </script>
+</body>
+</html>
