@@ -368,30 +368,46 @@
             let loadedCount = 0;
             const totalImages = scaleLevels.length;
             
-            scaleLevels.forEach((level, index) => {
-                const img = new Image();
-                img.crossOrigin = "anonymous"; // Handle CORS if needed
-                img.onload = () => {
-                    loadedCount++;
-                    console.log(`Loaded image ${loadedCount}/${totalImages}: ${level.name}`);
-                    if (loadedCount === totalImages) {
-                        imagesLoaded = true;
-                        document.getElementById('loading').style.display = 'none';
-                        updateDisplay();
-                    }
-                };
-                img.onerror = () => {
-                    console.warn(`Failed to load image: ${level.image}`);
-                    loadedCount++;
-                    if (loadedCount === totalImages) {
-                        imagesLoaded = true;
-                        document.getElementById('loading').style.display = 'none';
-                        updateDisplay();
-                    }
-                };
-                img.src = level.image;
-                images[index] = img;
-            });
+            // Test loading the first image with more detailed error handling
+            const testImg = new Image();
+            testImg.onload = function() {
+                console.log("Test image loaded successfully!");
+                loadAllImages();
+            };
+            testImg.onerror = function(e) {
+                console.error("Test image failed to load:", e);
+                console.log("Proceeding with fallback approach...");
+                loadAllImages();
+            };
+            testImg.src = "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers07.jpg";
+            
+            function loadAllImages() {
+                scaleLevels.forEach((level, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedCount++;
+                        console.log(`Loaded image ${loadedCount}/${totalImages}: ${level.name}`);
+                        if (loadedCount === totalImages) {
+                            imagesLoaded = true;
+                            document.getElementById('loading').style.display = 'none';
+                            updateDisplay();
+                        }
+                    };
+                    img.onerror = (error) => {
+                        console.error(`Failed to load image: ${level.image}`, error.type || error);
+                        // For now, continue as if loaded to avoid blocking the simulation
+                        loadedCount++;
+                        if (loadedCount === totalImages) {
+                            imagesLoaded = true;
+                            document.getElementById('loading').style.display = 'none';
+                            updateDisplay();
+                        }
+                    };
+                    // Correct GitHub raw URL format
+                    img.src = `https://raw.githubusercontent.com/Suchocki88/Powers/main/Powers${(index + 7).toString().padStart(2, '0')}.jpg`;
+                    images[index] = img;
+                });
+            }
         }
 
         function updateDisplay() {
@@ -524,14 +540,37 @@
 
         function drawImageForLevel(levelIndex) {
             const img = images[levelIndex];
-            if (!img || !img.complete) {
-                // Fallback: draw a placeholder
-                ctx.fillStyle = '#333';
+            const level = scaleLevels[levelIndex];
+            
+            if (!img || !img.complete || img.naturalWidth === 0) {
+                // Fallback: draw a styled placeholder
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                // Create gradient background
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(canvas.width, canvas.height) / 2);
+                gradient.addColorStop(0, '#1a1a3a');
+                gradient.addColorStop(1, '#0a0a1a');
+                ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#fff';
-                ctx.font = '24px Arial';
+                
+                // Draw placeholder content
+                ctx.fillStyle = '#4A90E2';
+                ctx.font = 'bold 24px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(`Powers${(levelIndex + 7).toString().padStart(2, '0')}.jpg`, canvas.width/2, canvas.height/2);
+                ctx.fillText(`10^${level.power} m`, centerX, centerY - 40);
+                
+                ctx.fillStyle = '#ccc';
+                ctx.font = '18px Arial';
+                ctx.fillText(level.name, centerX, centerY);
+                
+                ctx.fillStyle = '#888';
+                ctx.font = '14px Arial';
+                ctx.fillText(level.description, centerX, centerY + 30);
+                
+                ctx.fillStyle = '#555';
+                ctx.font = '12px Arial';
+                ctx.fillText(`Powers${(levelIndex + 7).toString().padStart(2, '0')}.jpg`, centerX, centerY + 60);
                 return;
             }
             
