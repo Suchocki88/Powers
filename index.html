@@ -41,117 +41,116 @@
             z-index: 100;
         }
 
-        .controls button {
+        .btn {
             background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            backdrop-filter: blur(5px);
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
         }
 
-        .controls button:hover {
+        .btn:hover {
             background: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.5);
         }
 
-        .controls button:disabled {
+        .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
         .scale-indicator {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 20px;
-            border-radius: 10px;
-            border-left: 4px solid #4A90E2;
-            backdrop-filter: blur(10px);
+            top: 30px;
+            left: 30px;
+            z-index: 100;
         }
 
-        .scale-value {
-            font-size: 28px;
+        .power-display {
+            font-size: 3em;
             font-weight: bold;
-            color: #4A90E2;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .scale-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .scale-name {
+            font-size: 1.5em;
+            font-weight: bold;
             margin-bottom: 5px;
         }
 
         .scale-description {
-            font-size: 16px;
-            color: #ccc;
-            margin-bottom: 8px;
-        }
-
-        .scale-size {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .info-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 320px;
-            backdrop-filter: blur(10px);
-        }
-
-        .info-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #4A90E2;
-        }
-
-        .info-content {
-            font-size: 13px;
-            line-height: 1.4;
-            color: #ccc;
+            font-size: 1em;
+            opacity: 0.9;
         }
 
         .progress-bar {
             position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px;
-            height: 6px;
+            top: 20px;
+            right: 30px;
+            width: 200px;
+            z-index: 100;
+        }
+
+        .progress-container {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+            height: 8px;
+            border-radius: 4px;
             overflow: hidden;
+            margin-bottom: 5px;
         }
 
         .progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
             height: 100%;
-            background: linear-gradient(90deg, #4A90E2, #7ED321, #F5A623, #FF6B6B);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+            width: 0%;
+            transition: width 0.5s ease;
         }
 
-        .instructions {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            font-size: 12px;
-            color: #888;
+        .progress-text {
+            text-align: right;
+            font-size: 0.9em;
+            opacity: 0.8;
         }
 
-        .loading {
+        .loading-message {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #4A90E2;
-            font-size: 18px;
+            text-align: center;
+            z-index: 1000;
+            font-size: 1.2em;
+        }
+
+        .keyboard-hint {
+            position: absolute;
+            bottom: 80px;
+            right: 30px;
+            font-size: 0.8em;
+            opacity: 0.6;
+            z-index: 100;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .loading-message {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
@@ -162,503 +161,236 @@
         </div>
 
         <div class="scale-indicator">
-            <div class="scale-value" id="scaleValue">10^7 m</div>
-            <div class="scale-description" id="scaleDescription">Earth</div>
-            <div class="scale-size" id="scaleSize">Our home planet</div>
-        </div>
-
-        <div class="info-panel">
-            <div class="info-title" id="infoTitle">You Are Here</div>
-            <div class="info-content" id="infoContent">Our home planet Earth, where all human history has taken place. From this perspective, Earth fills our entire view.</div>
+            <div class="power-display" id="power-display">10<sup>7</sup></div>
+            <div class="scale-info">
+                <div class="scale-name" id="scale-name">Loading...</div>
+                <div class="scale-description" id="scale-description">Preparing cosmic journey...</div>
+            </div>
         </div>
 
         <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-container">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">0/27</div>
         </div>
 
         <div class="controls">
-            <button id="zoomOut">Zoom Out (10x)</button>
-            <button id="zoomIn">Zoom In (10x)</button>
-            <button id="reset">Reset to Earth</button>
-            <button id="animate">Auto Tour</button>
+            <button class="btn" id="prevBtn">◀ Previous</button>
+            <button class="btn" id="resetBtn">↺ Reset</button>
+            <button class="btn" id="nextBtn">Next ▶</button>
+            <button class="btn" id="autoBtn">▶ Auto Tour</button>
         </div>
 
-        <div class="instructions">
-            Step through each power of 10 • Experience structure and emptiness • 21 levels from Earth to Observable Universe
+        <div class="keyboard-hint">
+            Use ← → arrow keys or buttons to navigate
         </div>
 
-        <div class="loading" id="loading">Loading images...</div>
+        <div class="loading-message" id="loading-message">
+            Loading cosmic scale images...<br>
+            <small>Preparing your journey through the universe</small>
+        </div>
     </div>
 
     <script>
+        const images = [];
+        const scales = [
+            { power: 7, name: "Earth", description: "Our blue marble home planet" },
+            { power: 8, name: "Earth-Moon System", description: "Earth and Moon in orbital dance" },
+            { power: 9, name: "Inner Solar System", description: "Mercury, Venus, Earth, and Mars" },
+            { power: 10, name: "Inner Planets", description: "Rocky worlds orbiting our Sun" },
+            { power: 11, name: "Asteroid Belt", description: "Rocky debris between Mars and Jupiter" },
+            { power: 12, name: "Solar System", description: "All planets within the Sun's family" },
+            { power: 13, name: "Kuiper Belt", description: "Icy remnants at our system's edge" },
+            { power: 14, name: "Oort Cloud", description: "Sphere of distant comets surrounds us" },
+            { power: 15, name: "Heliosphere Boundary", description: "Where solar wind meets interstellar space" },
+            { power: 16, name: "Nearby Stars", description: "Closest stellar neighbors to our Sun" },
+            { power: 17, name: "Local Stars", description: "Stars we see with naked eye" },
+            { power: 18, name: "Spiral Arm", description: "Part of Milky Way's structure" },
+            { power: 19, name: "Galactic Region", description: "Large section of our galaxy" },
+            { power: 20, name: "Milky Way", description: "Our entire spiral galaxy" },
+            { power: 21, name: "Galaxy Halo", description: "Extended dark matter envelope" },
+            { power: 22, name: "Local Group", description: "Milky Way, Andromeda, and companions" },
+            { power: 23, name: "Local Group Extended", description: "Neighboring galaxy groups" },
+            { power: 24, name: "Intergalactic Space", description: "Vast emptiness between groups" },
+            { power: 25, name: "Local Supercluster", description: "Virgo Cluster and surroundings" },
+            { power: 26, name: "Cosmic Web", description: "Network of galaxy filaments" },
+            { power: 27, name: "Observable Universe", description: "Limit of what telescopes can see" },
+            { power: 28, name: "Beyond Observable", description: "Universe beyond our cosmic horizon" },
+            { power: 29, name: "Inflation Region", description: "Domain of primordial cosmic inflation" },
+            { power: 30, name: "Cosmic Domain", description: "Our region in the greater cosmos" },
+            { power: 31, name: "Eternal Perspective", description: "From here, even domains are points" },
+            { power: 32, name: "Ultimate Boundary", description: "Edge of all physical reality" },
+            { power: "?", name: "The Whole Shebang", description: "Everything that exists - though it might be infinite" }
+        ];
+
+        let currentIndex = 0;
+        let autoTourActive = false;
+        let autoTourInterval;
+
+        // Initialize canvas
         const canvas = document.getElementById('cosmicCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Scale levels with image URLs
-        const scaleLevels = [
-            {
-                power: 7,
-                name: "Earth",
-                description: "Our home planet",
-                info: "Our home planet Earth, where all human history has taken place. From this perspective, Earth fills our entire view.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers07.jpg"
-            },
-            {
-                power: 8,
-                name: "Earth's Orbit",
-                description: "Earth-Moon system",
-                info: "Earth and its Moon. The Moon orbits at about 400,000 km distance. Earth now appears as a small blue marble.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers08.jpg"
-            },
-            {
-                power: 9,
-                name: "Inner Solar System",
-                description: "Mercury, Venus, Earth, Mars",
-                info: "The inner rocky planets of our Solar System. Vast empty space separates these worlds.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers09.jpg"
-            },
-            {
-                power: 10,
-                name: "Middle Solar System",
-                description: "Asteroid belt region",
-                info: "The asteroid belt between Mars and Jupiter. Mostly empty space with scattered rocky debris.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers10.jpg"
-            },
-            {
-                power: 11,
-                name: "Outer Solar System",
-                description: "Gas giants and moons",
-                info: "Jupiter, Saturn, Uranus, and Neptune with their moons and rings. The Sun appears as a bright star.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers11.jpg"
-            },
-            {
-                power: 12,
-                name: "Solar System Edge",
-                description: "Kuiper Belt and beyond",
-                info: "The edge of our Solar System where comets originate. Pluto and other dwarf planets reside here.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers12.jpg"
-            },
-            {
-                power: 13,
-                name: "Heliosphere",
-                description: "Solar wind boundary",
-                info: "The region dominated by solar wind. Beyond this lies interstellar space - a near-perfect vacuum.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers13.jpg"
-            },
-            {
-                power: 14,
-                name: "Interstellar Void",
-                description: "Empty space between stars",
-                info: "Nearly perfect vacuum with occasional gas molecules. The nearest star is still incredibly far away.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers14.jpg"
-            },
-            {
-                power: 15,
-                name: "Interstellar Space",
-                description: "Approaching nearby stars",
-                info: "Still mostly empty space, but we begin to detect the influence of nearby star systems.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers15.jpg"
-            },
-            {
-                power: 16,
-                name: "Stellar Neighborhood",
-                description: "A few nearby stars",
-                info: "A handful of the closest stars to our Sun become visible. Alpha Centauri is about 4.3 light-years away.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers16.jpg"
-            },
-            {
-                power: 17,
-                name: "Local Stars",
-                description: "Stars visible to naked eye",
-                info: "Most of the stars visible in our night sky. These are all relatively close neighbors in cosmic terms.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers17.jpg"
-            },
-            {
-                power: 18,
-                name: "Galactic Arm",
-                description: "Part of spiral arm",
-                info: "We see a portion of our spiral arm of the Milky Way. Still mostly empty space between star systems.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers18.jpg"
-            },
-            {
-                power: 19,
-                name: "Galactic Region",
-                description: "Large section of galaxy",
-                info: "A significant portion of our galaxy becomes visible, but individual stars merge into a glowing haze.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers19.jpg"
-            },
-            {
-                power: 20,
-                name: "Galactic Disk",
-                description: "Most of Milky Way visible",
-                info: "The full disk of our spiral galaxy is visible. We can see the central bulge and spiral arms.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers20.jpg"
-            },
-            {
-                power: 21,
-                name: "Milky Way Galaxy",
-                description: "Our complete galaxy",
-                info: "The entire Milky Way galaxy - a spiral containing over 100 billion stars. Our Solar System is a tiny dot.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers21.jpg"
-            },
-            {
-                power: 22,
-                name: "Galactic Halo",
-                description: "Beyond the galaxy",
-                info: "The sparse halo around our galaxy and the beginning of intergalactic space - mostly empty void.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers22.jpg"
-            },
-            {
-                power: 23,
-                name: "Local Group",
-                description: "Nearby galaxies",
-                info: "Our galaxy cluster including Andromeda, Triangulum, and smaller galaxies. Vast emptiness between them.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers23.jpg"
-            },
-            {
-                power: 24,
-                name: "Intergalactic Space",
-                description: "Between galaxy groups",
-                info: "Mostly empty space between galaxy groups. Occasionally we encounter other galaxy clusters.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers24.jpg"
-            },
-            {
-                power: 25,
-                name: "Local Supercluster",
-                description: "Galaxy clusters connected",
-                info: "The Virgo Supercluster - thousands of galaxies organized in a web-like structure with huge voids.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers25.jpg"
-            },
-            {
-                power: 26,
-                name: "Cosmic Web",
-                description: "Largest structures",
-                info: "The cosmic web - superclusters connected by filaments with enormous voids between them.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers26.jpg"
-            },
-            {
-                power: 27,
-                name: "Observable Universe",
-                description: "All we can see",
-                info: "The boundary of everything observable. The cosmic web appears as a foam-like structure at this scale.",
-                image: "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers27.jpg"
+            if (images[currentIndex]) {
+                updateDisplay();
             }
-        ];
+        }
 
-        // Global state variables
-        let currentLevel = 0;
-        let animating = false;
-        let animationId = null;
-        let transitioning = false;
-        let transitionProgress = 0;
-        let transitionDirection = 0;
-        let previousLevel = 0;
-        let images = {};
-        let imagesLoaded = false;
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        // Preload all images
-        function preloadImages() {
+        // Load images
+        function loadImages() {
             let loadedCount = 0;
-            const totalImages = scaleLevels.length;
             
-            // Test loading the first image with more detailed error handling
-            const testImg = new Image();
-            testImg.onload = function() {
-                console.log("Test image loaded successfully!");
-                loadAllImages();
-            };
-            testImg.onerror = function(e) {
-                console.error("Test image failed to load:", e);
-                console.log("Proceeding with fallback approach...");
-                loadAllImages();
-            };
-            testImg.src = "https://conceptualacademy.com/sites/default/files/images/2025-09/Powers07.jpg";
-            
-            function loadAllImages() {
-                scaleLevels.forEach((level, index) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        loadedCount++;
-                        console.log(`Loaded image ${loadedCount}/${totalImages}: ${level.name}`);
-                        if (loadedCount === totalImages) {
-                            imagesLoaded = true;
-                            document.getElementById('loading').style.display = 'none';
+            for (let i = 0; i < scales.length; i++) {
+                const img = new Image();
+                
+                img.onload = function() {
+                    loadedCount++;
+                    console.log(`Loaded image ${loadedCount}/${scales.length}: ${scales[i].name}`);
+                    
+                    if (loadedCount === scales.length) {
+                        document.getElementById('loading-message').style.display = 'none';
+                        currentIndex = 0;
+                        updateDisplay();
+                    }
+                };
+                
+                img.onerror = function() {
+                    console.error(`Failed to load image: Cosmic${(7 + i).toString().padStart(2, '0')}.jpg`);
+                    loadedCount++;
+                    
+                    if (loadedCount === scales.length) {
+                        document.getElementById('loading-message').textContent = 'Some images failed to load, but continuing...';
+                        setTimeout(() => {
+                            document.getElementById('loading-message').style.display = 'none';
+                            currentIndex = 0;
                             updateDisplay();
-                        }
-                    };
-                    img.onerror = (error) => {
-                        console.error(`Failed to load image: ${level.image}`, error.type || error);
-                        // For now, continue as if loaded to avoid blocking the simulation
-                        loadedCount++;
-                        if (loadedCount === totalImages) {
-                            imagesLoaded = true;
-                            document.getElementById('loading').style.display = 'none';
-                            updateDisplay();
-                        }
-                    };
-                    // Correct GitHub raw URL format
-                    img.src = `https://raw.githubusercontent.com/Suchocki88/Powers/main/Powers${(index + 7).toString().padStart(2, '0')}.jpg`;
-                    images[index] = img;
-                });
+                        }, 2000);
+                    }
+                };
+                
+                // Updated to use new Cosmic naming system
+                const imageNumber = (7 + i).toString().padStart(2, '0');
+                img.src = `https://raw.githubusercontent.com/Suchocki88/Powers/main/Cosmic${imageNumber}.jpg`;
+                images[i] = img;
             }
         }
 
         function updateDisplay() {
-            if (!imagesLoaded) return;
+            if (!images[currentIndex]) return;
             
-            const level = scaleLevels[currentLevel];
+            const scale = scales[currentIndex];
+            const canvas = document.getElementById('cosmicCanvas');
+            const ctx = canvas.getContext('2d');
             
-            document.getElementById('scaleValue').textContent = `10^${level.power} m`;
-            document.getElementById('scaleDescription').textContent = level.name;
-            document.getElementById('scaleSize').textContent = level.description;
-            document.getElementById('infoTitle').textContent = level.name;
-            document.getElementById('infoContent').textContent = level.info;
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            const progress = (currentLevel / (scaleLevels.length - 1)) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
+            // Draw the loaded image
+            const img = images[currentIndex];
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            document.getElementById('zoomOut').disabled = currentLevel >= scaleLevels.length - 1 || transitioning;
-            document.getElementById('zoomIn').disabled = currentLevel <= 0 || transitioning;
+            // Update scale indicator - handle the special case of "?"
+            const powerDisplay = scale.power === "?" ? "?" : scale.power.toString();
+            document.getElementById('power-display').innerHTML = `10<sup>${powerDisplay}</sup>`;
             
-            if (!transitioning) {
-                drawScale();
-            }
+            // Update info panel
+            document.getElementById('scale-name').textContent = scale.name;
+            document.getElementById('scale-description').textContent = scale.description;
+            
+            // Update progress bar
+            const progress = ((currentIndex + 1) / scales.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = `${currentIndex + 1}/${scales.length}`;
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === scales.length - 1;
         }
 
-        function startTransition(direction) {
-            if (transitioning || !imagesLoaded) return;
-            
-            transitioning = true;
-            transitionProgress = 0;
-            transitionDirection = direction;
-            previousLevel = currentLevel;
-            
-            if (direction === 1 && currentLevel < scaleLevels.length - 1) {
-                currentLevel++;
-            } else if (direction === -1 && currentLevel > 0) {
-                currentLevel--;
-            }
-            
-            animateTransition();
-        }
-
-        function animateTransition() {
-            transitionProgress += 0.03;
-            
-            if (transitionProgress >= 1) {
-                transitioning = false;
-                transitionProgress = 0;
+        function goToNext() {
+            if (currentIndex < scales.length - 1) {
+                currentIndex++;
                 updateDisplay();
+            }
+        }
+
+        function goToPrevious() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDisplay();
+            }
+        }
+
+        function resetToStart() {
+            currentIndex = 0;
+            updateDisplay();
+            stopAutoTour();
+        }
+
+        function startAutoTour() {
+            if (autoTourActive) {
+                stopAutoTour();
                 return;
             }
             
-            drawTransition();
-            requestAnimationFrame(animateTransition);
+            autoTourActive = true;
+            document.getElementById('autoBtn').textContent = '⏸ Pause Tour';
+            
+            autoTourInterval = setInterval(() => {
+                if (currentIndex < scales.length - 1) {
+                    goToNext();
+                } else {
+                    stopAutoTour();
+                }
+            }, 3000); // 3 seconds per scale
         }
 
-        function drawTransition() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const easeProgress = 0.5 - Math.cos(transitionProgress * Math.PI) / 2;
-            
-            if (transitionDirection === 1) {
-                // Zooming out
-                const currentScale = 1 - (easeProgress * 0.4); // 100% to 60%
-                const currentAlpha = 1 - easeProgress;
-                
-                const nextScale = 1.4 - (easeProgress * 0.4); // 140% to 100%
-                const nextAlpha = easeProgress;
-                
-                // Draw previous level
-                ctx.save();
-                ctx.globalAlpha = currentAlpha;
-                ctx.scale(currentScale, currentScale);
-                ctx.translate((centerX * (1 - currentScale)) / currentScale, (centerY * (1 - currentScale)) / currentScale);
-                drawImageForLevel(previousLevel);
-                ctx.restore();
-                
-                // Draw current level
-                ctx.save();
-                ctx.globalAlpha = nextAlpha;
-                ctx.scale(nextScale, nextScale);
-                ctx.translate((centerX * (1 - nextScale)) / nextScale, (centerY * (1 - nextScale)) / nextScale);
-                drawImageForLevel(currentLevel);
-                ctx.restore();
-                
-            } else {
-                // Zooming in
-                const currentScale = 1 + (easeProgress * 0.4); // 100% to 140%
-                const currentAlpha = 1 - easeProgress;
-                
-                const nextScale = 0.6 + (easeProgress * 0.4); // 60% to 100%
-                const nextAlpha = easeProgress;
-                
-                // Draw previous level
-                ctx.save();
-                ctx.globalAlpha = currentAlpha;
-                ctx.scale(currentScale, currentScale);
-                ctx.translate((centerX * (1 - currentScale)) / currentScale, (centerY * (1 - currentScale)) / currentScale);
-                drawImageForLevel(previousLevel);
-                ctx.restore();
-                
-                // Draw current level
-                ctx.save();
-                ctx.globalAlpha = nextAlpha;
-                ctx.scale(nextScale, nextScale);
-                ctx.translate((centerX * (1 - nextScale)) / nextScale, (centerY * (1 - nextScale)) / nextScale);
-                drawImageForLevel(currentLevel);
-                ctx.restore();
+        function stopAutoTour() {
+            autoTourActive = false;
+            document.getElementById('autoBtn').textContent = '▶ Auto Tour';
+            if (autoTourInterval) {
+                clearInterval(autoTourInterval);
             }
-            
-            // Update UI during transition
-            const level = scaleLevels[currentLevel];
-            document.getElementById('scaleValue').textContent = `10^${level.power} m`;
-            document.getElementById('scaleDescription').textContent = level.name;
-            document.getElementById('scaleSize').textContent = level.description;
-            document.getElementById('infoTitle').textContent = level.name;
-            document.getElementById('infoContent').textContent = level.info;
-            
-            const progress = (currentLevel / (scaleLevels.length - 1)) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-        }
-
-        function drawScale() {
-            if (transitioning || !imagesLoaded) return;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawImageForLevel(currentLevel);
-        }
-
-        function drawImageForLevel(levelIndex) {
-            const img = images[levelIndex];
-            const level = scaleLevels[levelIndex];
-            
-            if (!img || !img.complete || img.naturalWidth === 0) {
-                // Fallback: draw a styled placeholder
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-                
-                // Create gradient background
-                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(canvas.width, canvas.height) / 2);
-                gradient.addColorStop(0, '#1a1a3a');
-                gradient.addColorStop(1, '#0a0a1a');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw placeholder content
-                ctx.fillStyle = '#4A90E2';
-                ctx.font = 'bold 24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`10^${level.power} m`, centerX, centerY - 40);
-                
-                ctx.fillStyle = '#ccc';
-                ctx.font = '18px Arial';
-                ctx.fillText(level.name, centerX, centerY);
-                
-                ctx.fillStyle = '#888';
-                ctx.font = '14px Arial';
-                ctx.fillText(level.description, centerX, centerY + 30);
-                
-                ctx.fillStyle = '#555';
-                ctx.font = '12px Arial';
-                ctx.fillText(`Powers${(levelIndex + 7).toString().padStart(2, '0')}.jpg`, centerX, centerY + 60);
-                return;
-            }
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            
-            // Calculate size to fit canvas while maintaining aspect ratio
-            const canvasAspect = canvas.width / canvas.height;
-            const imageAspect = img.width / img.height;
-            
-            let drawWidth, drawHeight;
-            
-            if (imageAspect > canvasAspect) {
-                drawWidth = canvas.width * 0.95;
-                drawHeight = drawWidth / imageAspect;
-            } else {
-                drawHeight = canvas.height * 0.95;
-                drawWidth = drawHeight * imageAspect;
-            }
-            
-            // Center the image
-            const x = centerX - drawWidth / 2;
-            const y = centerY - drawHeight / 2;
-            
-            ctx.drawImage(img, x, y, drawWidth, drawHeight);
         }
 
         // Event listeners
-        document.getElementById('zoomOut').addEventListener('click', () => {
-            if (currentLevel < scaleLevels.length - 1 && !transitioning) {
-                startTransition(1);
-            }
-        });
-
-        document.getElementById('zoomIn').addEventListener('click', () => {
-            if (currentLevel > 0 && !transitioning) {
-                startTransition(-1);
-            }
-        });
-
-        document.getElementById('reset').addEventListener('click', () => {
-            if (!transitioning) {
-                currentLevel = 0;
-                updateDisplay();
-            }
-        });
-
-        document.getElementById('animate').addEventListener('click', () => {
-            if (transitioning) return;
-            
-            if (animating) {
-                clearInterval(animationId);
-                animating = false;
-                document.getElementById('animate').textContent = 'Auto Tour';
-            } else {
-                animating = true;
-                document.getElementById('animate').textContent = 'Stop Tour';
-                
-                animationId = setInterval(() => {
-                    if (currentLevel < scaleLevels.length - 1 && !transitioning) {
-                        startTransition(1);
-                    } else {
-                        clearInterval(animationId);
-                        animating = false;
-                        document.getElementById('animate').textContent = 'Auto Tour';
-                    }
-                }, 3000);
-            }
-        });
+        document.getElementById('nextBtn').addEventListener('click', goToNext);
+        document.getElementById('prevBtn').addEventListener('click', goToPrevious);
+        document.getElementById('resetBtn').addEventListener('click', resetToStart);
+        document.getElementById('autoBtn').addEventListener('click', startAutoTour);
 
         // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if (transitioning) return;
-            
-            if (e.key === 'ArrowUp' || e.key === '+') {
-                document.getElementById('zoomOut').click();
-            } else if (e.key === 'ArrowDown' || e.key === '-') {
-                document.getElementById('zoomIn').click();
-            } else if (e.key === 'r' || e.key === 'R') {
-                document.getElementById('reset').click();
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                document.getElementById('animate').click();
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case 'ArrowRight':
+                case ' ':
+                    event.preventDefault();
+                    goToNext();
+                    break;
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    goToPrevious();
+                    break;
+                case 'Home':
+                    event.preventDefault();
+                    resetToStart();
+                    break;
+                case 'Enter':
+                    event.preventDefault();
+                    startAutoTour();
+                    break;
             }
         });
 
-        // Initialize
-        preloadImages();
+        // Start loading images
+        loadImages();
     </script>
 </body>
 </html>
