@@ -316,15 +316,15 @@
 
         function goToNext() {
             if (currentIndex < scales.length - 1) {
-                currentIndex++;
-                updateDisplay();
+                const targetIndex = currentIndex + 1;
+                animateTransition(targetIndex, 1); // 1 for zooming out (getting bigger view)
             }
         }
 
         function goToPrevious() {
             if (currentIndex > 0) {
-                currentIndex--;
-                updateDisplay();
+                const targetIndex = currentIndex - 1;
+                animateTransition(targetIndex, -1); // -1 for zooming in (getting closer view)
             }
         }
 
