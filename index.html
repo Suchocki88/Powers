@@ -161,7 +161,7 @@
         </div>
 
         <div class="scale-indicator">
-            <div class="power-display" id="power-display">10<sup>7</sup></div>
+            <div class="power-display" id="power-display">10<sup>7</sup> m</div>
             <div class="scale-info">
                 <div class="scale-name" id="scale-name">Loading...</div>
                 <div class="scale-description" id="scale-description">Preparing cosmic journey...</div>
@@ -243,6 +243,171 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        function drawImageFixed(img, scale = 1.0) {
+            const canvas = document.getElementById('cosmicCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate display area maintaining image's native aspect ratio
+            const imageRatio = img.width / img.height;
+            const canvasRatio = canvas.width / canvas.height;
+            
+            let displayWidth, displayHeight, offsetX, offsetY;
+            
+            // Always maintain the image's original aspect ratio
+            if (canvasRatio > imageRatio) {
+                // Canvas is wider - fit to height, letterbox on sides
+                displayHeight = canvas.height;
+                displayWidth = displayHeight * imageRatio;
+                offsetX = (canvas.width - displayWidth) / 2;
+                offsetY = 0;
+            } else {
+                // Canvas is taller - fit to width, letterbox top/bottom
+                displayWidth = canvas.width;
+                displayHeight = displayWidth / imageRatio;
+                offsetX = 0;
+                offsetY = (canvas.height - displayHeight) / 2;
+            }
+            
+            // Apply scaling for animation
+            const scaledWidth = displayWidth * scale;
+            const scaledHeight = displayHeight * scale;
+            const scaledX = offsetX - (scaledWidth - displayWidth) / 2;
+            const scaledY = offsetY - (scaledHeight - displayHeight) / 2;
+            
+            // Draw image maintaining original aspect ratio
+            ctx.drawImage(img, scaledX, scaledY, scaledWidth, scaledHeight);
+        }
+
+        function animateTransition(targetIndex, direction = 1) {
+            if (!images[targetIndex] || targetIndex === currentIndex) return;
+            
+            const canvas = document.getElementById('cosmicCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let animationProgress = 0;
+            const animationDuration = 1000; // 1 second
+            const startTime = performance.now();
+            
+            // Update UI immediately
+            const scale = scales[targetIndex];
+            const powerDisplay = scale.power === "?" ? "?" : scale.power.toString();
+            document.getElementById('power-display').innerHTML = `10<sup>${powerDisplay}</sup> m`;
+            document.getElementById('scale-name').textContent = scale.name;
+            document.getElementById('scale-description').textContent = scale.description;
+            
+            const progress = ((targetIndex + 1) / scales.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = `${targetIndex + 1}/${scales.length}`;
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                animationProgress = Math.min(elapsed / animationDuration, 1);
+                
+                // Easing function for smooth animation
+                const easeProgress = 1 - Math.pow(1 - animationProgress, 3);
+                
+                // Calculate zoom effect
+                const startScale = direction > 0 ? 1.4 : 0.7;
+                const endScale = 1.0;
+                const currentScale = startScale + (endScale - startScale) * easeProgress;
+                
+                // Apply opacity for smooth transition
+                ctx.globalAlpha = 0.5 + 0.5 * easeProgress;
+                
+                // Draw the target image with current scale
+                drawImageFixed(images[targetIndex], currentScale);
+                
+                if (animationProgress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete
+                    ctx.globalAlpha = 1;
+                    currentIndex = targetIndex;
+                    updateDisplay();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function updateDisplay() {
+            if (!images[currentIndex]) return;
+            
+            const scale = scales[currentIndex];
+            
+            // Update scale indicator with meters unit
+            const powerDisplay = scale.power === "?" ? "?" : scale.power.toString();
+            document.getElementById('power-display').innerHTML = `10<sup>${powerDisplay}</sup> m`;
+            
+            // Update info panel
+            document.getElementById('scale-name').textContent = scale.name;
+            document.getElementById('scale-description').textContent = scale.description;
+            
+            // Update progress bar
+            const progress = ((currentIndex + 1) / scales.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = `${currentIndex + 1}/${scales.length}`;
+            
+            // Update button states
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === scales.length - 1;
+            
+            // Draw the image without animation
+            drawImageFixed(images[currentIndex], 1.0);
+        }
+
+        function goToNext() {
+            if (currentIndex < scales.length - 1) {
+                const targetIndex = currentIndex + 1;
+                animateTransition(targetIndex, 1);
+            }
+        }
+
+        function goToPrevious() {
+            if (currentIndex > 0) {
+                const targetIndex = currentIndex - 1;
+                animateTransition(targetIndex, -1);
+            }
+        }
+
+        function resetToStart() {
+            currentIndex = 0;
+            updateDisplay();
+            stopAutoTour();
+        }
+
+        function startAutoTour() {
+            if (autoTourActive) {
+                stopAutoTour();
+                return;
+            }
+            
+            autoTourActive = true;
+            document.getElementById('autoBtn').textContent = '⏸ Pause Tour';
+            
+            autoTourInterval = setInterval(() => {
+                if (currentIndex < scales.length - 1) {
+                    goToNext();
+                } else {
+                    stopAutoTour();
+                }
+            }, 3000);
+        }
+
+        function stopAutoTour() {
+            autoTourActive = false;
+            document.getElementById('autoBtn').textContent = '▶ Auto Tour';
+            if (autoTourInterval) {
+                clearInterval(autoTourInterval);
+            }
+        }
+
         // Load images
         function loadImages() {
             let loadedCount = 0;
@@ -275,88 +440,9 @@
                     }
                 };
                 
-                // Updated to use new Cosmic naming system
                 const imageNumber = (7 + i).toString().padStart(2, '0');
                 img.src = `https://raw.githubusercontent.com/Suchocki88/Powers/main/Cosmic${imageNumber}.jpg`;
                 images[i] = img;
-            }
-        }
-
-        function updateDisplay() {
-            if (!images[currentIndex]) return;
-            
-            const scale = scales[currentIndex];
-            const canvas = document.getElementById('cosmicCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw the loaded image
-            const img = images[currentIndex];
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // Update scale indicator - handle the special case of "?"
-            const powerDisplay = scale.power === "?" ? "?" : scale.power.toString();
-            document.getElementById('power-display').innerHTML = `10<sup>${powerDisplay}</sup>`;
-            
-            // Update info panel
-            document.getElementById('scale-name').textContent = scale.name;
-            document.getElementById('scale-description').textContent = scale.description;
-            
-            // Update progress bar
-            const progress = ((currentIndex + 1) / scales.length) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('progress-text').textContent = `${currentIndex + 1}/${scales.length}`;
-            
-            // Update button states
-            document.getElementById('prevBtn').disabled = currentIndex === 0;
-            document.getElementById('nextBtn').disabled = currentIndex === scales.length - 1;
-        }
-
-        function goToNext() {
-            if (currentIndex < scales.length - 1) {
-                const targetIndex = currentIndex + 1;
-                animateTransition(targetIndex, 1); // 1 for zooming out (getting bigger view)
-            }
-        }
-
-        function goToPrevious() {
-            if (currentIndex > 0) {
-                const targetIndex = currentIndex - 1;
-                animateTransition(targetIndex, -1); // -1 for zooming in (getting closer view)
-            }
-        }
-
-        function resetToStart() {
-            currentIndex = 0;
-            updateDisplay();
-            stopAutoTour();
-        }
-
-        function startAutoTour() {
-            if (autoTourActive) {
-                stopAutoTour();
-                return;
-            }
-            
-            autoTourActive = true;
-            document.getElementById('autoBtn').textContent = '⏸ Pause Tour';
-            
-            autoTourInterval = setInterval(() => {
-                if (currentIndex < scales.length - 1) {
-                    goToNext();
-                } else {
-                    stopAutoTour();
-                }
-            }, 3000); // 3 seconds per scale
-        }
-
-        function stopAutoTour() {
-            autoTourActive = false;
-            document.getElementById('autoBtn').textContent = '▶ Auto Tour';
-            if (autoTourInterval) {
-                clearInterval(autoTourInterval);
             }
         }
 
