@@ -176,9 +176,9 @@
         </div>
 
         <div class="controls">
-            <button class="btn" id="prevBtn">◀ Zoom In</button>
+            <button class="btn" id="prevBtn">◀ Previous</button>
             <button class="btn" id="resetBtn">↺ Reset</button>
-            <button class="btn" id="nextBtn">Zoom Out ▶</button>
+            <button class="btn" id="nextBtn">Next ▶</button>
             <button class="btn" id="autoBtn">▶ Auto Tour</button>
         </div>
 
@@ -389,19 +389,33 @@
             }
             
             autoTourActive = true;
+            autoTourDirection = 1; // Always start going forward
             document.getElementById('autoBtn').textContent = '⏸ Pause Tour';
             
             autoTourInterval = setInterval(() => {
-                if (currentIndex < scales.length - 1) {
-                    goToNext();
+                if (autoTourDirection === 1) {
+                    // Going forward
+                    if (currentIndex < scales.length - 1) {
+                        goToNext();
+                    } else {
+                        // Reached the end, start going backward
+                        autoTourDirection = -1;
+                    }
                 } else {
-                    stopAutoTour();
+                    // Going backward
+                    if (currentIndex > 0) {
+                        goToPrevious();
+                    } else {
+                        // Completed the round trip, stop the tour
+                        stopAutoTour();
+                    }
                 }
-            }, 3000);
+            }, 3000); // 3 seconds per scale
         }
 
         function stopAutoTour() {
             autoTourActive = false;
+            autoTourDirection = 1; // Reset for next tour
             document.getElementById('autoBtn').textContent = '▶ Auto Tour';
             if (autoTourInterval) {
                 clearInterval(autoTourInterval);
